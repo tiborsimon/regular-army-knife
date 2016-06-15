@@ -1,5 +1,5 @@
 import re
-from enum import Enum
+
 
 class SequenceNode(object):
     def __init__(self, id):
@@ -37,7 +37,7 @@ class SequenceNode(object):
             self.proxy_counter += 1
 
 
-class SequenceState(Enum):
+class SequenceState(object):
     """Enumeration object for the internal sequence states"""
     idle = 1
     proxy = 2
@@ -141,7 +141,7 @@ class Offset(object):
         if self.mode is OffsetMode.greater_then_or_equal:
             return offset >= self.target_number or not match
 
-        if self.mode.value >= OffsetMode.interval.value:
+        if self.mode >= OffsetMode.interval:
             if not self._validate_interval_limits():
                 raise ValueError('Offset lower limit should be lower!')
 
@@ -166,7 +166,7 @@ class Offset(object):
                 return (is_inside and match) or (not match and not is_over)
 
     def _validate_interval_limits(self):
-        if self.mode.value >= OffsetMode.interval.value:
+        if self.mode >= OffsetMode.interval:
             if self.target_number > self.upper_target_number:
                 return False
             if self.mode is OffsetMode.interval:
@@ -263,7 +263,7 @@ class Offset(object):
             raise SyntaxError('Invalid offset specifier: ' + raw_offset)
 
 
-class OffsetMode(Enum):
+class OffsetMode(object):
     """Enumeration object for the Offset states"""
     equal = 1
     less_than = 2
