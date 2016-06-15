@@ -1,5 +1,5 @@
 import unittest
-from replaceit.condition import (Comparer, Matcher, Sequence, Condition, Relation)
+from rak.condition import (Comparer, Matcher, Sequence, Condition, Relation)
 
 # ============================================================================
 #    C O N D I T I O N   T E S T S

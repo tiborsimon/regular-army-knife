@@ -1,5 +1,5 @@
 import unittest
-from replaceit.condition import (ConditionHandler, NoConditionError,
+from rak.condition import (ConditionHandler, NoConditionError,
                                  ConditionLoopError)
 
 

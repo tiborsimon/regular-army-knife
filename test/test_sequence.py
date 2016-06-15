@@ -1,5 +1,5 @@
 import unittest
-from replaceit.sequence import (SequenceNode, SequenceState,
+from rak.sequence import (SequenceNode, SequenceState,
                                 Offset, OffsetMode)
 
 

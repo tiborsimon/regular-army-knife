@@ -1,5 +1,5 @@
 import unittest
-from replaceit.pattern import (Pattern, PatternHandler, InvalidPatternIdError, _parse_id,
+from rak.pattern import (Pattern, PatternHandler, InvalidPatternIdError, _parse_id,
                                NoPatternError)
 
 

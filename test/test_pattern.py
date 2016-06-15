@@ -1,5 +1,5 @@
 import unittest
-from replaceit.pattern import Pattern
+from rak.pattern import Pattern
 
 
 class PatternBasicBehaviorTests(unittest.TestCase):
