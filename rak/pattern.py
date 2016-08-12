@@ -9,31 +9,6 @@ class NoPatternError(Exception):
     pass
 
 
-def _parse_id(raw_id):
-    """Translates pattern ids to indexes.  The first pattern can be identified as A,
-    the second is B and so on.  Pattern groups can be indexed with numbers.  For
-    example, you can index the second pattern's second group with B2.  The method
-    returns a tuple with two element.
-
-    returned_dictionary = {
-        'main': <pattern indexes from 0>,
-        'group': <group indexes from 1. 0 indexes the whole pattern>
-    }
-    """
-    p = re.compile('([A-Z])(\d{,2})')
-    m = p.match(raw_id)
-    if m:
-        main_index = m.group(1)
-        try:
-            group_index = int(m.group(2))
-        except ValueError:
-            group_index = 0
-        parsed_id = {'main': main_index, 'group': group_index}
-        return parsed_id
-    else:
-        raise InvalidPatternIdError('Invalid ID: ' + raw_id)
-
-
 class Pattern(object):
     """Regular expression pattern object
 
@@ -143,7 +118,7 @@ class PatternHandler(object):
         # ASCII code of the letter before 'A'. The pattern generation method
         # will increment first this number and assigns the converted one to
         # the newly created condition.
-        self.last_id = 64
+        self.last_id = 0
 
     def __str__(self):
         if self.patterns:
@@ -166,12 +141,9 @@ class PatternHandler(object):
         Raises: OverflowError
         """
         self.last_id += 1
-        if self.last_id > ord('Z'):
-            raise OverflowError('Pattern limit has reached..')
-        else:
-            new_entry = {'id': chr(self.last_id), 'pattern': Pattern()}
-            self.patterns.append(new_entry)
-        return chr(self.last_id)
+        new_entry = {'id': chr(self.last_id), 'pattern': Pattern()}
+        self.patterns.append(new_entry)
+        return 'P{}'.format(self.last_id)
 
     def remove_pattern(self, raw_id):
         """Removes a pattern specified with the given id. Id validation is happening
@@ -198,7 +170,7 @@ class PatternHandler(object):
 
         Raises: InvalidPatternIdError
         """
-        parsed_id = _parse_id(raw_id)
+        parsed_id = PatternHandler._parse_id(raw_id)
         try:
             self._validate_id(parsed_id)
         except InvalidPatternIdError:
@@ -240,28 +212,23 @@ class PatternHandler(object):
         }
 
         returned_dictionary_example = {
-            'A': (
-                None,
-                {
-                    'A': {'match': 'foo', 'span': (8, 11)},
-                    'A1': {'match': 'foo', 'span': (8, 11)}
-                }
-            )
+            'A': {'match': 'foo', 'span': (8, 11)},
+            'A1': {'match': 'foo', 'span': (8, 11)}
         }
         """
         if not self.patterns:
             raise NoPatternError
         ret = {}
-        for element in self.patterns:
-            current_key = element['id']
-            result = element['pattern'].execute(content)
+        for pattern in self.patterns:
+            current_key = pattern['id']
+            result = pattern['pattern'].execute(content)
             if result:
                 for i in range(len(result['results'])):
                     ret[current_key] = {
                         'match': result['results'][i],
                         'span': result['spans'][i]
                     }
-                    current_key = element['id'] + str(i+1)
+                    current_key = pattern['id'] + str(i+1)
         return ret
 
     def _get_pattern_for_id(self, raw_id):
@@ -276,13 +243,37 @@ class PatternHandler(object):
             if self.patterns[i]['id'] == parsed_id['main']:
                 return i
 
+    @classmethod
+    def _parse_id(cls, raw_id):
+        """Translates pattern ids to indexes.  The first pattern can be identified as A,
+        the second is B and so on.  Pattern groups can be indexed with numbers.  For
+        example, you can index the second pattern's second group with B2.  The method
+        returns a tuple with two element.
+
+        returned_dictionary = {
+            'main': <pattern indexes from 0>,
+            'group': <group indexes from 1. 0 indexes the whole pattern>
+        }
+        """
+        m = re.match('P(\d+)(.(\d+))?', raw_id)
+        if m:
+            main_index = int(m.group(1)) - 1
+            try:
+                group_index = int(m.group(3)) - 1
+            except TypeError:
+                group_index = -1
+            parsed_id = {'main': main_index, 'group': group_index}
+            return parsed_id
+        else:
+            raise InvalidPatternIdError('Invalid ID: ' + raw_id)
+
     def _validate_id(self, parsed_id):
         """Validates the provided indexes.  If the validation fails, an IndexError
         exception will raised.
         """
-        for entry in self.patterns:
-            if entry['id'] == parsed_id['main']:
-                if parsed_id['group'] < len(entry['pattern'].groups):
+        for pattern in self.patterns:
+            if pattern['id'] == parsed_id['main']:
+                if parsed_id['group'] < len(pattern['pattern'].groups):
                     break
                 else:
                     raise InvalidPatternIdError()

@@ -1,5 +1,5 @@
 import unittest
-from rak.pattern import (Pattern, PatternHandler, InvalidPatternIdError, _parse_id,
+from rak.pattern import (Pattern, PatternHandler, InvalidPatternIdError,
                                NoPatternError)
 
 
@@ -9,7 +9,7 @@ class PatternHandlerAddingPatternsTests(unittest.TestCase):
 
     def test__pattern_handler_initialization(self):
         self.assertEqual([], self.ph.patterns)
-        self.assertEqual(64, self.ph.last_id)
+        self.assertEqual(0, self.ph.last_id)
 
     def test__adding_a_pattern(self):
         self.ph.add_pattern()
@@ -19,31 +19,17 @@ class PatternHandlerAddingPatternsTests(unittest.TestCase):
         self.assertEqual(Pattern, self.ph.patterns[0]['pattern'].__class__)
 
     def test__adding_pattern_returns_the_main_id(self):
-        expected = 'A'
+        expected = 'P1'
         result = self.ph.add_pattern()
         self.assertEqual(result, expected)
         self.assertEqual(1, len(self.ph.patterns))
 
     def test__adding_pattern_returns_the_main_id_for_the_second_time_as_well(self):
-        expected = 'B'
+        expected = 'P2'
         self.ph.add_pattern()
         result = self.ph.add_pattern()
         self.assertEqual(result, expected)
         self.assertEqual(2, len(self.ph.patterns))
-
-    def test__adding_pattern_failed_if_the_last_letter_has_assigned(self):
-        expected = 'Z'
-        result = ''
-        for i in range(26):
-            result = self.ph.add_pattern()
-        self.assertEqual(result, expected)
-
-        with self.assertRaises(OverflowError):
-            self.ph.add_pattern()
-
-        max_len = 26
-        l = len(self.ph.patterns)
-        self.assertEqual(max_len, l)
 
 
 class PatternHandlerPrint(unittest.TestCase):
@@ -78,62 +64,62 @@ class PatternHandlerPrint(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-class PatternHandlerIdParsingTests(unittest.TestCase):
+class PatterIdParsing(unittest.TestCase):
     def setUp(self):
         self.ph = PatternHandler()
 
     def test__single_id_produces_valid_main_and_group_index1(self):
-        raw_id = 'A'
-        expected = {'main': 'A', 'group': 0}
-        result = _parse_id(raw_id)
+        raw_id = 'P1'
+        expected = {'main': 0, 'group': -1}
+        result = PatternHandler._parse_id(raw_id)
         self.assertEqual(result, expected)
 
     def test__single_id_produces_valid_main_and_group_index2(self):
-        raw_id = 'B'
-        expected = {'main': 'B', 'group': 0}
-        result = _parse_id(raw_id)
+        raw_id = 'P2'
+        expected = {'main': 1, 'group': -1}
+        result = PatternHandler._parse_id(raw_id)
         self.assertEqual(result, expected)
 
     def test__id_with_group_index(self):
-        raw_id = 'A2'
-        expected = {'main': 'A', 'group': 2}
-        result = _parse_id(raw_id)
+        raw_id = 'P2.2'
+        expected = {'main': 1, 'group': 1}
+        result = PatternHandler._parse_id(raw_id)
         self.assertEqual(result, expected)
 
     def test__lowercase_id__raises_exception(self):
         raw_id = 'a2'
         with self.assertRaises(InvalidPatternIdError):
-            _parse_id(raw_id)
+            PatternHandler._parse_id(raw_id)
 
     def test__numeric_id__raises_exception(self):
         raw_id = '42'
         with self.assertRaises(InvalidPatternIdError):
-            _parse_id(raw_id)
+            PatternHandler._parse_id(raw_id)
 
 
-class PatternHandlerIdValidationTests(unittest.TestCase):
+class PatternIdValidation(unittest.TestCase):
     def setUp(self):
         self.ph = PatternHandler()
 
     def test__no_patterns_added_yet__validation_raises_error(self):
-        parsed_id = {'main': 'A', 'group': 0}
+        parsed_id = {'main': 0, 'group': 0}
         with self.assertRaises(InvalidPatternIdError):
             self.ph._validate_id(parsed_id)
 
     def test__valid_pattern__no_error_raised__main_ok(self):
-        main_id = self.ph.add_pattern()
-        parsed_id = {'main': main_id, 'group': 0}
+        self.ph.add_pattern()
+        parsed_id = {'main': 0, 'group': 0}
         self.ph._validate_id(parsed_id)
 
     def test__valid_pattern__no_error_raised__group_ok(self):
-        main_id = self.ph.add_pattern()
+        self.ph.add_pattern()
         self.ph.patterns[0]['pattern'].add_expression('(foo)')
-        parsed_id = {'main': main_id, 'group': 1}
+        parsed_id = {'main': 0, 'group': 0}
         self.ph._validate_id(parsed_id)
 
     def test__invalid_pattern__main_index_overrun__should_raise_error(self):
         self.ph.add_pattern()
-        parsed_id = {'main': 'B', 'group': 0}
+        parsed_id = {'main': 1, 'group': 0}
         with self.assertRaises(InvalidPatternIdError):
             self.ph._validate_id(parsed_id)
 
@@ -263,7 +249,7 @@ class PatternHandlerExecute(unittest.TestCase):
         content = 'This is foo..'
 
         expected = {
-            'A': {'match': 'foo', 'span': (8, 11)}
+            'P1': {'match': 'foo', 'span': (8, 11)}
         }
 
         result = self.ph.execute(content)
@@ -276,8 +262,8 @@ class PatternHandlerExecute(unittest.TestCase):
         content = 'This is foo..'
 
         expected = {
-            'A': {'match': 'foo', 'span': (8, 11)},
-            'A1': {'match': 'foo', 'span': (8, 11)}
+            'P1':   {'match': 'foo', 'span': (8, 11)},
+            'P1.1': {'match': 'foo', 'span': (8, 11)}
         }
 
         result = self.ph.execute(content)
@@ -290,8 +276,8 @@ class PatternHandlerExecute(unittest.TestCase):
         content = 'This is foo..'
 
         expected = {
-            'A': {'match': 'This is foo..', 'span': (0, 13)},
-            'A1': {'match': 'foo', 'span': (8, 11)}
+            'P1':   {'match': 'This is foo..', 'span': (0, 13)},
+            'P1.1': {'match': 'foo', 'span': (8, 11)}
         }
 
         result = self.ph.execute(content)
@@ -307,11 +293,11 @@ class PatternHandlerExecute(unittest.TestCase):
         content = 'This is foo..'
 
         expected = {
-            'A': {'match': 'This is foo..', 'span': (0, 13)},
-            'A1': {'match': 'foo', 'span': (8, 11)},
-            'B': {'match': ' is foo..', 'span': (4, 13)},
-            'B1': {'match': 'is', 'span': (5, 7)},
-            'B2': {'match': 'foo..', 'span': (8, 13)}
+            'P1':   {'match': 'This is foo..', 'span': (0, 13)},
+            'P1.1': {'match': 'foo', 'span': (8, 11)},
+            'P2':   {'match': ' is foo..', 'span': (4, 13)},
+            'P2.1': {'match': 'is', 'span': (5, 7)},
+            'P2.2': {'match': 'foo..', 'span': (8, 13)}
         }
 
         result = self.ph.execute(content)
@@ -327,8 +313,8 @@ class PatternHandlerExecute(unittest.TestCase):
         content = '..foo..'
 
         expected = {
-            'A': {'match': '..foo..', 'span': (0, 7)},
-            'A1': {'match': 'foo', 'span': (2, 5)}
+            'P1':   {'match': '..foo..', 'span': (0, 7)},
+            'P1.1': {'match': 'foo', 'span': (2, 5)}
         }
 
         result = self.ph.execute(content)

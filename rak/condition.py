@@ -24,7 +24,7 @@ class Condition(object):
         level to be able to process the pattern input in one sequential step.
 
     Loop protocol
-        A protocol that finds loops in the newly created realation. If a loop is
+        A protocol that finds loops in the newly created relation. If a loop is
         detected an exception will be raised.
     """
     def __init__(self, new_id):
