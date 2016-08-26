@@ -1,4 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import re
+
+def add():
+    pass
+
+def delete():
+    pass
+
+def change():
+    pass
+
+def info():
+    pass
+
+def run():
+    pass
 
 
 class InvalidPatternIdError(SyntaxError):

@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+__author__ = 'Tibor Simon'
+
+import rak
 
 def prepare_args(args):
     ret = []
