@@ -16,7 +16,7 @@ class Parameterpreprocessing(TestCase):
         result = cmd.prepare_args(param_list)
         self.assertEquals(expected, result)
 
-    def test__single_dashed_parameter_returns_itself(self):
+    def test__single_dashed_parameter__no_change(self):
         param_list = ['-p']
         expected = ['-p']
         result = cmd.prepare_args(param_list)
@@ -34,13 +34,13 @@ class Parameterpreprocessing(TestCase):
         result = cmd.prepare_args(param_list)
         self.assertEquals(expected, result)
 
-    def test__non_dashed_argument_only(self):
+    def test__non_dashed_argument__no_change(self):
         param_list = ['imre']
         expected = ['imre']
         result = cmd.prepare_args(param_list)
         self.assertEquals(expected, result)
 
-    def test__non_dashed_argument_is_the_first(self):
+    def test__non_dashed__then_dashed_with_non_dashed(self):
         param_list = ['imre', '-a', 'kakao']
         expected = ['imre', '-a', 'kakao']
         result = cmd.prepare_args(param_list)
