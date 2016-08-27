@@ -8,8 +8,8 @@ __all__ = [
     'sequence'
 ]
 
-from rak import interface
-from rak import action
-from rak import pattern
-from rak import condition
-from rak import sequence
+from . import interface
+from .core import action
+from .core import pattern
+from .core import condition
+from .core import sequence

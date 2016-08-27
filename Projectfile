@@ -1,0 +1,9 @@
+from v1.0.9
+
+clean|c:
+    """
+    Clean up all pyc files..
+    """
+    echo "Cleaning up pyc files.."
+    find ./ \( -name "*.pyc" -o -name "__pycache__" \) -exec rm -vrf {} \;
+    echo "Done."
