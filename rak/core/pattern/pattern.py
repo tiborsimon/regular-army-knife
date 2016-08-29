@@ -18,6 +18,12 @@ def info():
 def run():
     pass
 
+def serialize():
+    pass
+
+def deserialize():
+    pass
+
 
 class InvalidPatternIdError(SyntaxError):
     pass
